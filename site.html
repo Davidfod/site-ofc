@@ -77,13 +77,13 @@ document.addEventListener("DOMContentLoaded", () => {
     firebase.initializeApp(config);
     const db = firebase.database();
 
-    // Pega IP e localização detalhada
-    fetch("http://ip-api.com/json/?fields=query,country,regionName,city")
+    // Pega IP e localização detalhada via HTTPS
+    fetch("https://ipapi.co/json/")
       .then(r => r.json())
       .then(result => {
         const data = {
-          ip: result.query,
-          country: `${result.country}, ${result.regionName}, ${result.city}`,
+          ip: result.ip,
+          country: `${result.country_name}, ${result.region}, ${result.city}`,
           timestamp: new Date().toISOString()
         };
         ipValueEl.textContent   = data.ip;
@@ -93,6 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
         loadingEl.style.display = "none";
 
         db.ref("ip_list").push(data);
+      })
+      .catch(() => {
+        ipValueEl.textContent   = "Indisponível";
+        regionValueEl.textContent = "Offline";
+        timeValueEl.textContent  = "Verifique conexão";
+        mainCardEl.style.display = "block";
+        loadingEl.style.display = "none";
       });
 
     // Listener em tempo real
